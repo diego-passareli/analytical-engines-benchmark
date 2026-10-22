@@ -38,8 +38,18 @@ def load_csv(paths: list[str]) -> pd.DataFrame:
     df = pd.concat(frames, ignore_index=True)
     df['elapsed_s'] = pd.to_numeric(df['elapsed_s'], errors='coerce')
     df['energy_kwh'] = pd.to_numeric(df['energy_kwh'], errors='coerce').fillna(0)
-    # Descartar warm-up
-    df = df[df['rep'] > WARMUP_REP].copy()
+    # Descartar warm-up.
+    # run_tpch.py, run_tpcds.py e run_clickbench.py já NÃO gravam o warm-up
+    # (gravam apenas as execuções 2-5, renumeradas como rep 1-4).
+    # run_real.py grava as 5 execuções; nele, rep 1 é o warm-up.
+    is_real = df['suite'].astype(str) == 'real'
+    df = df[~is_real | (df['rep'] > WARMUP_REP)].copy()
+    # Execuções com falha são gravadas com elapsed_s = -1: o par
+    # (engine, query) inteiro é tratado como não concluído.
+    failed = df.loc[df['elapsed_s'] <= 0, ['source_file', 'engine', 'query']].drop_duplicates()
+    if not failed.empty:
+        df = df.merge(failed.assign(_fail=1), on=['source_file', 'engine', 'query'], how='left')
+        df = df[df['_fail'].isna()].drop(columns='_fail')
     return df
 
 

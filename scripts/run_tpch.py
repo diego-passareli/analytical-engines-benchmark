@@ -1,203 +1,218 @@
 #!/usr/bin/env python3
-"""
-TPC-H benchmark runner — PostgreSQL, DuckDB e Polars
-Protocolo: 5 execuções por query/engine, descarta warm-up (rep=1),
-           reporta reps 2-5 (mediana e IQR calculados na análise).
-"""
-
-import csv, os, re, time, threading, subprocess, sys
+import argparse, csv, re, time, threading, subprocess, sys, resource, os
 from pathlib import Path
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutTimeoutError
+import multiprocessing as mp
 
-import psutil
-import duckdb
-import polars as pl
-import psycopg2
+import psutil, duckdb, psycopg2
 from codecarbon import EmissionsTracker
 
-# ── Configuração ────────────────────────────────────────────────────────────
-DATA_DIR    = Path.home() / "bench/data/tpch"
+BASE_DIR    = Path.home() / "bench/data/tpch"
 QUERY_FILE  = Path.home() / "bench/queries/tpch/queries.sql"
 RESULTS_DIR = Path.home() / "bench/results"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-PG_CONN  = dict(host="127.0.0.1", dbname="bench", user="bench", password="bench")
-DUCK_DB  = str(DATA_DIR / "tpch_sf1.duckdb")
-SF       = 1
-REPS     = 5   # inclui warm-up; rep=1 é descartada
-TABLES   = ["region","nation","supplier","part",
-            "customer","partsupp","orders","lineitem"]
+TIMEOUT          = 120
+PG_TOUT          = 100
+POLARS_MEM_GB    = 30    # limite de memória virtual para subprocess Polars
+TABLES = ["region","nation","supplier","part","customer","partsupp","orders","lineitem"]
 
-# ── Parsing das queries ──────────────────────────────────────────────────────
-def parse_queries(path: Path) -> dict[int, str]:
-    text = path.read_text()
+_INTERVAL_RE = re.compile(r"INTERVAL\s+'(\d+)'\s+(DAY|MONTH|YEAR)S?", re.IGNORECASE)
+_UNIT_MAP    = {"DAY": "days", "MONTH": "months", "YEAR": "years"}
+
+def polars_sql(sql):
+    return _INTERVAL_RE.sub(
+        lambda m: f"INTERVAL '{m.group(1)} {_UNIT_MAP[m.group(2).upper()]}'", sql)
+
+def parse_queries(path):
+    text  = Path(path).read_text()
     parts = re.split(r'--\s*Q(\d+)', text)
-    queries = {}
-    for i in range(1, len(parts), 2):
-        qnum = int(parts[i])
-        sql  = parts[i+1].strip()
-        queries[qnum] = sql
-    return queries
+    return {int(parts[i]): parts[i+1].strip() for i in range(1, len(parts), 2)}
 
-# ── Monitor de recursos (thread paralela, 500 ms) ───────────────────────────
 class ResourceMonitor:
     def __init__(self):
-        self.cpu_samples: list[float] = []
-        self.ram_peak_mb: float = 0.0
+        self.cpu_samples = []; self.ram_peak_mb = 0.0
         self._stop = threading.Event()
-        self._thread: threading.Thread | None = None
 
     def start(self):
-        self.cpu_samples = []
-        self.ram_peak_mb = 0.0
-        self._stop.clear()
-        self._thread = threading.Thread(target=self._loop, daemon=True)
-        self._thread.start()
+        self.cpu_samples = []; self.ram_peak_mb = 0.0; self._stop.clear()
+        self._t = threading.Thread(target=self._loop, daemon=True); self._t.start()
 
     def stop(self):
-        self._stop.set()
-        if self._thread:
-            self._thread.join()
+        self._stop.set(); self._t.join()
 
     def _loop(self):
         proc = psutil.Process()
         while not self._stop.wait(0.5):
             try:
                 self.cpu_samples.append(psutil.cpu_percent(interval=None))
-                rss = proc.memory_info().rss / (1024 * 1024)
-                if rss > self.ram_peak_mb:
-                    self.ram_peak_mb = rss
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                break
+                rss = proc.memory_info().rss / (1024*1024)
+                if rss > self.ram_peak_mb: self.ram_peak_mb = rss
+            except: break
 
     @property
-    def cpu_avg(self) -> float:
-        return sum(self.cpu_samples) / len(self.cpu_samples) if self.cpu_samples else 0.0
+    def cpu_avg(self):
+        return sum(self.cpu_samples)/len(self.cpu_samples) if self.cpu_samples else 0.0
 
-# ── Runners por engine ───────────────────────────────────────────────────────
-def _disk_read_mb():
-    return psutil.disk_io_counters().read_bytes / (1024 * 1024)
+def _disk_mb():
+    return psutil.disk_io_counters().read_bytes / (1024*1024)
 
-def run_pg(sql: str) -> tuple[float, float]:
-    conn = psycopg2.connect(**PG_CONN)
+def run_pg(sql, pg_conn):
+    conn = psycopg2.connect(**pg_conn, options=f"-c statement_timeout={PG_TOUT*1000}")
     cur  = conn.cursor()
-    d0   = _disk_read_mb()
-    t0   = time.perf_counter()
-    cur.execute(sql)
-    cur.fetchall()
-    elapsed = time.perf_counter() - t0
-    disk_mb = _disk_read_mb() - d0
-    cur.close(); conn.close()
-    return elapsed, disk_mb
+    d0 = _disk_mb(); t0 = time.perf_counter()
+    cur.execute(sql); cur.fetchall()
+    e = time.perf_counter()-t0; disk = _disk_mb()-d0
+    cur.close(); conn.close(); return e, disk
 
-def run_duckdb(sql: str, con: duckdb.DuckDBPyConnection) -> tuple[float, float]:
-    d0 = _disk_read_mb()
-    t0 = time.perf_counter()
+def run_duckdb(sql, con):
+    d0 = _disk_mb(); t0 = time.perf_counter()
     con.execute(sql).fetchall()
-    elapsed = time.perf_counter() - t0
-    return elapsed, _disk_read_mb() - d0
+    return time.perf_counter()-t0, _disk_mb()-d0
 
-def run_polars(sql: str, ctx: pl.SQLContext) -> tuple[float, float]:
-    d0 = _disk_read_mb()
-    t0 = time.perf_counter()
-    ctx.execute(sql).collect()
-    elapsed = time.perf_counter() - t0
-    return elapsed, _disk_read_mb() - d0
+# Polars roda em subprocess isolado para conter OOM
+def _polars_worker(sql, data_dir, tables, q):
+    try:
+        limit = POLARS_MEM_GB * 1024**3
+        resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
+    except Exception:
+        pass
+    try:
+        import polars as pl
+        ctx = pl.SQLContext()
+        for t in tables:
+            ctx.register(t, pl.scan_parquet(f"{data_dir}/{t}.parquet"))
+        import psutil, time
+        d0 = psutil.disk_io_counters().read_bytes / (1024*1024)
+        t0 = time.perf_counter()
+        ctx.execute(sql).collect()
+        elapsed = time.perf_counter() - t0
+        disk = psutil.disk_io_counters().read_bytes / (1024*1024) - d0
+        q.put(("ok", elapsed, disk))
+    except Exception as e:
+        q.put(("err", str(type(e).__name__), str(e)))
 
-# ── Medição com codecarbon ───────────────────────────────────────────────────
-def measure(engine_fn, monitor: ResourceMonitor) -> tuple:
-    tracker = EmissionsTracker(
-        project_name="tpch",
-        output_dir=str(RESULTS_DIR),
-        log_level="error",
-        save_to_file=False,
-        tracking_mode="process",
-    )
-    monitor.start()
-    tracker.start()
-    elapsed, disk_mb = engine_fn()
-    kwh = tracker.stop() or 0.0
-    monitor.stop()
-    return elapsed, monitor.cpu_avg, monitor.ram_peak_mb, disk_mb, kwh
+def run_polars(sql, data_dir):
+    q = mp.Queue()
+    p = mp.Process(target=_polars_worker,
+                   args=(sql, str(data_dir), TABLES, q), daemon=True)
+    p.start()
+    p.join(TIMEOUT)
+    if p.is_alive():
+        p.terminate(); p.join()
+        raise TimeoutError(f"timeout >{TIMEOUT}s")
+    if not q.empty():
+        result = q.get()
+        if result[0] == "ok":
+            return result[1], result[2]
+        raise Exception(f"{result[1]}: {result[2]}")
+    raise MemoryError("subprocess killed (OOM)")
 
-# ── Limpeza de cache ─────────────────────────────────────────────────────────
+def measure_pg(fn, mon):
+    return _measure(fn, mon)
+
+def measure_duck(fn, mon):
+    return _measure(fn, mon)
+
+def measure_polars(fn, mon):
+    tracker = EmissionsTracker(project_name="tpch", output_dir=str(RESULTS_DIR),
+                               log_level="error", save_to_file=False)
+    mon.start(); tracker.start()
+    err = None; elapsed = disk = -1.0
+    try:
+        elapsed, disk = fn()
+    except Exception as e:
+        err = e
+    kwh = tracker.stop() or 0.0; mon.stop()
+    if err: raise err
+    return elapsed, mon.cpu_avg, mon.ram_peak_mb, disk, kwh
+
+def _measure(fn, mon):
+    tracker = EmissionsTracker(project_name="tpch", output_dir=str(RESULTS_DIR),
+                               log_level="error", save_to_file=False)
+    mon.start(); tracker.start()
+    executor = ThreadPoolExecutor(max_workers=1)
+    future   = executor.submit(fn)
+    timed_out = False; err = None
+    try:
+        elapsed, disk = future.result(timeout=TIMEOUT)
+    except FutTimeoutError:
+        timed_out = True
+    except Exception as ex:
+        err = ex
+    finally:
+        executor.shutdown(wait=False)
+    kwh = tracker.stop() or 0.0; mon.stop()
+    if timed_out: raise TimeoutError(f"timeout >{TIMEOUT}s")
+    if err: raise err
+    return elapsed, mon.cpu_avg, mon.ram_peak_mb, disk, kwh
+
 def drop_caches():
-    subprocess.run(
-        ["sudo", "sh", "-c", "echo 3 > /proc/sys/vm/drop_caches"],
-        check=False, capture_output=True,
-    )
+    subprocess.run(["sudo","tee","/proc/sys/vm/drop_caches"],
+                   input=b"3", check=False, capture_output=True)
     time.sleep(2)
 
-# ── Main ─────────────────────────────────────────────────────────────────────
 def main():
-    # Filtro opcional: python run_tpch.py 1 6 14   → roda só Q1, Q6, Q14
-    filter_qs = set(int(a) for a in sys.argv[1:]) if len(sys.argv) > 1 else None
+    mp.set_start_method("spawn", force=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sf", type=int, default=1, choices=[1,10,100])
+    parser.add_argument("queries", nargs="*", type=int)
+    args    = parser.parse_args()
+    sf      = args.sf
+    filter_qs = set(args.queries) if args.queries else None
+    data_dir  = BASE_DIR / f"sf{sf}"
+    db_name   = "bench" if sf == 1 else f"bench_sf{sf}"
+    pg_conn   = dict(host="127.0.0.1", dbname=db_name, user="bench", password="bench")
+    duck_db   = str(data_dir / f"tpch_sf{sf}.duckdb")
 
     queries = parse_queries(QUERY_FILE)
-    print(f"Queries carregadas: {len(queries)}")
+    print(f"TPC-H SF={sf}  banco={db_name}  timeout={TIMEOUT}s  polars_mem={POLARS_MEM_GB}GB")
 
-    # Prepara DuckDB
-    duck_con = duckdb.connect(DUCK_DB)
-    duck_con.execute("SET threads=16; SET memory_limit='50GB';")
+    duck_con = duckdb.connect(duck_db)
+    duck_con.execute("SET threads=16; SET memory_limit='40GB';")
 
-    # Prepara Polars SQLContext
-    polars_ctx = pl.SQLContext()
-    for t in TABLES:
-        polars_ctx.register(t, pl.scan_parquet(str(DATA_DIR / f"{t}.parquet")))
+    ts  = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out = RESULTS_DIR / f"tpch_sf{sf}_{ts}.csv"
+    fields = ["engine","suite","sf","query","rep",
+              "elapsed_s","cpu_pct","ram_mb","disk_mb","energy_kwh"]
+    mon = ResourceMonitor()
+    dnf = set()
 
-    ts       = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_file = RESULTS_DIR / f"tpch_sf{SF}_{ts}.csv"
-    fields   = ["engine","suite","sf","query","rep",
-                "elapsed_s","cpu_pct","ram_mb","disk_mb","energy_kwh"]
-
-    monitor = ResourceMonitor()
-
-    with open(out_file, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-
+    with open(out, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields); w.writeheader()
         for qnum in sorted(queries):
-            if filter_qs and qnum not in filter_qs:
-                continue
+            if filter_qs and qnum not in filter_qs: continue
             sql = queries[qnum]
             print(f"\n=== Q{qnum:02d} ===")
-
             engines = [
-                ("postgresql", lambda s=sql: run_pg(s)),
-                ("duckdb",     lambda s=sql: run_duckdb(s, duck_con)),
-                ("polars",     lambda s=sql: run_polars(s, polars_ctx)),
+                ("postgresql", lambda s=sql: run_pg(s, pg_conn),   measure_pg),
+                ("duckdb",     lambda s=sql: run_duckdb(s, duck_con), measure_duck),
+                ("polars",     lambda s=sql: run_polars(polars_sql(s), data_dir), measure_polars),
             ]
-
-            for rep in range(1, REPS + 1):
-                for eng_name, eng_fn in engines:
+            for rep in range(1, 6):
+                for eng, fn, mfn in engines:
+                    key = (eng, qnum)
+                    if key in dnf:
+                        print(f"  rep{rep} {eng:12s} SKIP"); continue
                     drop_caches()
                     try:
-                        elapsed, cpu, ram, disk, kwh = measure(eng_fn, monitor)
-                        tag = f"{elapsed:.3f}s"
-                    except Exception as e:
-                        elapsed, cpu, ram, disk, kwh = -1.0, 0.0, 0.0, 0.0, 0.0
-                        tag = f"ERRO: {e}"
-
-                    warmup = " [warm-up]" if rep == 1 else ""
-                    print(f"  rep{rep}{warmup} {eng_name:12s} {tag}")
-
-                    if rep > 1:           # descarta warm-up
-                        writer.writerow({
-                            "engine":     eng_name,
-                            "suite":      "tpch",
-                            "sf":         SF,
-                            "query":      qnum,
-                            "rep":        rep - 1,
-                            "elapsed_s":  round(elapsed, 4),
-                            "cpu_pct":    round(cpu, 2),
-                            "ram_mb":     round(ram, 1),
-                            "disk_mb":    round(disk, 2),
-                            "energy_kwh": round(kwh, 10),
-                        })
+                        e, cpu, ram, disk, kwh = mfn(fn, mon)
+                        tag = f"{e:.3f}s"
+                    except Exception as ex:
+                        dnf.add(key)
+                        e, cpu, ram, disk, kwh = -1.0,0.0,0.0,0.0,0.0
+                        tag = f"ERRO: {type(ex).__name__}"
+                    warmup = " [warm-up]" if rep==1 else ""
+                    print(f"  rep{rep}{warmup} {eng:12s} {tag}")
+                    if rep > 1:
+                        w.writerow({"engine":eng,"suite":"tpch","sf":sf,"query":qnum,
+                                    "rep":rep-1,"elapsed_s":round(e,4),"cpu_pct":round(cpu,2),
+                                    "ram_mb":round(ram,1),"disk_mb":round(disk,2),
+                                    "energy_kwh":round(kwh,10)})
         f.flush()
-
     duck_con.close()
-    print(f"\nResultados em: {out_file}")
+    print(f"\nResultados em: {out}")
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,5 @@
 -- ClickBench — 43 queries em SQL padrão (PostgreSQL / DuckDB / Polars)
--- Delimitadores: -- Q1 ... -- Q43
 -- EventDate: DATE  |  EventTime: TIMESTAMP
--- (DuckDB e Polars recebem VIEW/cast no run script antes da execução)
 
 -- Q1
 SELECT COUNT(*) FROM hits;

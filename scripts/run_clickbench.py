@@ -7,7 +7,7 @@ EventDate e EventTime normalizados para DATE/TIMESTAMP em todos os motores.
 
 import csv, os, re, time, threading, subprocess, sys, resource
 from pathlib import Path
-from datetime import datetime, date
+from datetime import datetime
 import multiprocessing as mp
 
 import psutil
@@ -25,9 +25,9 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 PG_CONN  = dict(host="127.0.0.1", dbname="bench_clickbench",
                 user="bench", password="bench")
 DUCK_DB  = str(Path.home() / "bench/data/clickbench/hits.duckdb")
-REPS     = 5          # inclui warm-up; rep=1 descartado
-TIMEOUT  = 300        # segundos por query
-PG_TOUT  = 270        # statement_timeout PostgreSQL (ms → s via psycopg2 option)
+REPS          = 5
+TIMEOUT       = 300
+PG_TOUT       = 270
 POLARS_MEM_GB = 30
 
 # ── Parse queries ─────────────────────────────────────────────────────────────
@@ -71,7 +71,6 @@ class ResourceMonitor:
     def cpu_avg(self) -> float:
         return sum(self.cpu_samples) / len(self.cpu_samples) if self.cpu_samples else 0.0
 
-# ── Disk I/O helper ───────────────────────────────────────────────────────────
 def _disk_read_mb() -> float:
     return psutil.disk_io_counters().read_bytes / (1024 * 1024)
 
@@ -95,12 +94,10 @@ def run_duckdb(sql: str, con: duckdb.DuckDBPyConnection) -> tuple[float, float]:
     con.execute(sql).fetchall()
     return time.perf_counter() - t0, _disk_read_mb() - d0
 
-# ── Polars worker (subprocess para conter OOM) ────────────────────────────────
 def _polars_worker(sql: str, parquet: str, queue: mp.Queue):
     try:
         mem_bytes = POLARS_MEM_GB * 1024**3
         resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
-
         hits_lf = (
             pl.scan_parquet(parquet)
             .with_columns([
@@ -116,10 +113,10 @@ def _polars_worker(sql: str, parquet: str, queue: mp.Queue):
         queue.put(e)
 
 def run_polars(sql: str) -> tuple[float, float]:
-    q   = mp.Queue()
-    p   = mp.Process(target=_polars_worker,
-                     args=(sql, str(PARQUET), q), daemon=True)
-    d0  = _disk_read_mb()
+    q  = mp.Queue()
+    p  = mp.Process(target=_polars_worker,
+                    args=(sql, str(PARQUET), q), daemon=True)
+    d0 = _disk_read_mb()
     p.start()
     p.join(timeout=TIMEOUT)
     disk_mb = _disk_read_mb() - d0
@@ -128,12 +125,12 @@ def run_polars(sql: str) -> tuple[float, float]:
         raise TimeoutError("Polars timeout")
     result = q.get() if not q.empty() else None
     if result is None:
-        raise MemoryError("Polars OOM (queue vazia)")
+        raise MemoryError("Polars OOM")
     if isinstance(result, Exception):
         raise result
     return result, disk_mb
 
-# ── Medição com codecarbon ────────────────────────────────────────────────────
+# ── Medição ───────────────────────────────────────────────────────────────────
 def measure(engine_fn, monitor: ResourceMonitor) -> tuple:
     tracker = EmissionsTracker(
         project_name="clickbench", output_dir=str(RESULTS_DIR),
@@ -146,7 +143,6 @@ def measure(engine_fn, monitor: ResourceMonitor) -> tuple:
     monitor.stop()
     return elapsed, monitor.cpu_avg, monitor.ram_peak_mb, disk_mb, kwh
 
-# ── Cache drop ────────────────────────────────────────────────────────────────
 def drop_caches():
     subprocess.run(["sudo", "tee", "/proc/sys/vm/drop_caches"],
                    input=b"3", capture_output=True, check=False)
@@ -155,14 +151,12 @@ def drop_caches():
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     mp.set_start_method("spawn", force=True)
-
-    # filtro opcional: python run_clickbench.py 1 5 21
     filter_qs = set(int(a) for a in sys.argv[1:]) if len(sys.argv) > 1 else None
 
     queries = parse_queries(QUERY_FILE)
     print(f"Queries carregadas: {len(queries)}")
 
-    # DuckDB — VIEW com tipos normalizados
+    # DuckDB com VIEW de tipos normalizados
     duck_con = duckdb.connect(DUCK_DB)
     duck_con.execute("SET threads=16; SET memory_limit='40GB';")
     duck_con.execute(f"""
@@ -177,10 +171,10 @@ def main():
 
     ts       = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_file = RESULTS_DIR / f"clickbench_{ts}.csv"
-    fields   = ["engine", "suite", "sf", "query", "rep",
-                "elapsed_s", "cpu_pct", "ram_mb", "disk_mb", "energy_kwh"]
+    fields   = ["engine","suite","sf","query","rep",
+                "elapsed_s","cpu_pct","ram_mb","disk_mb","energy_kwh"]
 
-    dnf: set[tuple[str, int]] = set()   # (engine, qnum) que já falharam
+    dnf: set[tuple[str,int]] = set()
     monitor = ResourceMonitor()
 
     with open(out_file, "w", newline="") as f:
@@ -193,35 +187,36 @@ def main():
             sql = queries[qnum]
             print(f"\n=== Q{qnum:02d} ===")
 
-            engines = [
-                ("postgresql", lambda s=sql: run_pg(s)),
-                ("duckdb",     lambda s=sql: run_duckdb(s, duck_con)),
-                ("polars",     lambda s=sql: run_polars(s)),
-            ]
-
             for rep in range(1, REPS + 1):
-                for eng_name, eng_fn in engines:
+                for eng_name, eng_fn in [
+                    ("postgresql", lambda s=sql: run_pg(s)),
+                    ("duckdb",     lambda s=sql: run_duckdb(s, duck_con)),
+                    ("polars",     lambda s=sql: run_polars(s)),
+                ]:
                     if (eng_name, qnum) in dnf:
                         continue
 
                     drop_caches()
+                    elapsed = cpu = ram = disk = kwh = 0.0
                     try:
-                        from concurrent.futures import ThreadPoolExecutor, TimeoutError as FTE
                         if eng_name == "postgresql":
-                            with ThreadPoolExecutor(max_workers=1) as ex:
-                                fut = ex.submit(lambda: measure(eng_fn, monitor))
-                                try:
-                                    elapsed, cpu, ram, disk, kwh = fut.result(timeout=TIMEOUT)
-                                    tag = f"{elapsed:.3f}s"
-                                except FTE:
-                                    elapsed, cpu, ram, disk, kwh = -1.0, 0, 0, 0, 0
-                                    tag = "TIMEOUT"
-                                    dnf.add((eng_name, qnum))
+                            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FTE
+                            executor = ThreadPoolExecutor(max_workers=1)
+                            fut = executor.submit(lambda: measure(eng_fn, monitor))
+                            try:
+                                elapsed, cpu, ram, disk, kwh = fut.result(timeout=TIMEOUT)
+                                tag = f"{elapsed:.3f}s"
+                            except FTE:
+                                elapsed = -1.0
+                                tag = "TIMEOUT"
+                                dnf.add((eng_name, qnum))
+                            finally:
+                                executor.shutdown(wait=False)
                         else:
                             elapsed, cpu, ram, disk, kwh = measure(eng_fn, monitor)
                             tag = f"{elapsed:.3f}s"
                     except Exception as e:
-                        elapsed, cpu, ram, disk, kwh = -1.0, 0, 0, 0, 0
+                        elapsed = -1.0
                         tag = f"ERRO: {type(e).__name__}"
                         dnf.add((eng_name, qnum))
 
@@ -241,7 +236,7 @@ def main():
                             "disk_mb":    round(disk, 2),
                             "energy_kwh": round(kwh, 10),
                         })
-                f.flush()
+            f.flush()
 
     duck_con.close()
     print(f"\nResultados em: {out_file}")
