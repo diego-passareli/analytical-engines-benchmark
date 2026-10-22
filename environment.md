@@ -52,6 +52,6 @@ A interface Intel RAPL não está disponível no ambiente virtualizado (`/sys/cl
 - **Timeout:** `statement_timeout` de 270 s no PostgreSQL (TPC-DS e ClickBench) e 300 s por query no subprocesso do Polars; 300 s nos dados reais. Falhas são gravadas com `elapsed_s = -1`.
 - **DuckDB:** `threads=16`, `memory_limit=40GB`.
 - **Polars:** `POLARS_MAX_THREADS=16`, subprocesso isolado com limite de 30 GB de memória virtual (`RLIMIT_AS`).
-- **Isolamento:** cache do SO limpo antes de cada execução (`sync; echo 3 > /proc/sys/vm/drop_caches` via sudo)
+- **Isolamento:** cache do SO limpo antes de cada execução (`sync` seguido de `echo 3 | sudo -n tee /proc/sys/vm/drop_caches`)
 - **Ordem de execução:** suítes sintéticas — para cada query e repetição, PostgreSQL → DuckDB → Polars; dados reais — as 5 repetições de cada engine em sequência.
 - **Saída:** CSV com colunas `engine, suite, sf, query, rep, elapsed_s, cpu_pct, ram_mb, disk_mb, energy_kwh`

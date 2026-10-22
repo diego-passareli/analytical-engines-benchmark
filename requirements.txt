@@ -2,7 +2,7 @@
 # requirements.txt — Benchmark Analítico On-Premise
 # Dissertação de Mestrado PPGI/UTFPR-CP — Diego Augusto Passareli
 #
-# Python testado: 3.10.x (Ubuntu 22.04 LTS padrão)
+# Python testado: 3.10.12 (Ubuntu 22.04 LTS padrão)
 # Instalar: pip install -r requirements.txt
 # ============================================================
 
@@ -11,14 +11,12 @@ duckdb==1.5.6
 polars==1.44.2
 
 # ── Banco de dados PostgreSQL ─────────────────────────────────
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.13
 
 # ── Medição de energia e recursos ────────────────────────────
 codecarbon==3.3.1
-psutil==6.1.0
+psutil==7.2.2
 
 # ── Análise dos resultados ────────────────────────────────────
-pandas==2.2.3
-numpy==2.1.3
-matplotlib==3.9.2
-scipy==1.14.1
+pandas==2.3.3
+numpy==2.2.6

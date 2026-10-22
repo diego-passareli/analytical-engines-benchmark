@@ -62,7 +62,7 @@ Este repositório contém todos os scripts de setup, execução e análise utili
     ├── tpcds_sf1_20260930_133613.csv
     ├── tpcds_sf10_20260930_152117.csv
     ├── clickbench_20260929_231522.csv
-    └── real_20260930_204407.csv
+    └── real_20261022_191400.csv
 ```
 
 ## Requisitos
@@ -71,7 +71,7 @@ Este repositório contém todos os scripts de setup, execução e análise utili
 - Python 3.10+
 - PostgreSQL 14 rodando localmente (usuário `bench`, senha `bench`, banco criado por setup)
 - ~120 GB de espaço em disco para todos os datasets
-- Permissão `sudo` sem senha para: `sync; echo 3 > /proc/sys/vm/drop_caches`
+- Permissão `sudo` sem senha para `tee /proc/sys/vm/drop_caches` (ex.: `/etc/sudoers.d/drop_caches` com `usuario ALL=(root) NOPASSWD: /usr/bin/tee /proc/sys/vm/drop_caches`)
 
 ## Instalação
 
@@ -151,7 +151,7 @@ python scripts/run_real.py
 ```bash
 # Gera tabelas de estatísticas (mediana, IQR, speedup) a partir dos CSVs
 python scripts/analyze_results.py results/tpcds_sf10_20260930_152117.csv
-python scripts/analyze_results.py results/real_20260930_204407.csv
+python scripts/analyze_results.py results/real_20261022_191400.csv
 ```
 
 ## Protocolo de repetições (importante para reanalisar os CSVs)
