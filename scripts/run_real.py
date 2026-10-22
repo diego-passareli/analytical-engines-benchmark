@@ -32,9 +32,17 @@ TS  = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 OUT = RES_DIR / f"real_{TS}.csv"
 
 def drop_cache():
-    subprocess.run(
-        ["sudo", "sh", "-c", "sync; echo 3 > /proc/sys/vm/drop_caches"],
-        capture_output=True)
+    """Limpa o page cache do SO (mesma forma das demais suítes).
+
+    Usa `sudo -n tee`, liberado sem senha em /etc/sudoers.d/drop_caches.
+    Interrompe o benchmark se a limpeza falhar, em vez de seguir sem limpar.
+    """
+    subprocess.run(["sync"], check=True)
+    r = subprocess.run(["sudo", "-n", "tee", "/proc/sys/vm/drop_caches"],
+                       input=b"3", capture_output=True)
+    if r.returncode != 0:
+        raise RuntimeError("drop_caches falhou: " + r.stderr.decode().strip())
+    time.sleep(2)
 
 def read_sql(qname):
     return (Q_DIR / f"{qname}.sql").read_text()
