@@ -11,6 +11,11 @@ Uso (na VM, com o venv do projeto ativo):
   cd ~/bench
   python3 scripts/check_results.py real
   python3 scripts/check_results.py tpcds --sf 1
+  python3 scripts/check_results.py tpch --sf 10 --ref duckdb
+  python3 scripts/check_results.py clickbench --ref duckdb
+
+  Com --ref duckdb, o PostgreSQL não é executado e o Polars é comparado com o
+  DuckDB (útil quando o banco do PostgreSQL não existe mais).
   python3 scripts/check_results.py tpch --sf 1 --answers ~/caminho/tpch-dbgen/answers
 
   No TPC-H, --answers usa como referência as respostas oficiais do kit dbgen
@@ -37,6 +42,7 @@ RES_DIR = BASE / "results"
 PG_PASS = os.environ.get("PGPASSWORD", "bench")
 PG_TIMEOUT_S = 600
 PL_TIMEOUT_S = 300   # mesmo timeout dos runners
+PL_MEM_GB = 30       # mesmo limite de memória dos runners (RLIMIT_AS)
 
 TPCDS_TABLES = [
     "call_center", "catalog_page", "catalog_returns", "catalog_sales",
@@ -80,6 +86,22 @@ def setup(suite, sf, pgdb=None):
         ctx = [(t, str(pq_dir / f"{t}.parquet")) for t in TPCDS_TABLES
                if (pq_dir / f"{t}.parquet").exists()]
         pl_rewrite = lambda s: s
+    elif suite == "clickbench":
+        text = (BASE / "queries/clickbench/queries.sql").read_text()
+        parts = re.split(r'--\s*Q(\d+)', text)
+        queries = {int(parts[i]): parts[i + 1].strip() for i in range(1, len(parts), 2)}
+        parquet = str(BASE / "data/clickbench/hits.parquet")
+        pg = dict(host="127.0.0.1", dbname=pgdb or "bench_clickbench",
+                  user="bench", password=PG_PASS)
+        # Mesma VIEW de tipos normalizados usada em run_clickbench.py
+        dk = duckdb.connect()
+        dk.execute("SET threads=16; SET memory_limit='40GB';")
+        dk.execute(f"""CREATE VIEW hits AS SELECT * REPLACE (
+                         to_timestamp(EventTime) AS EventTime,
+                         (DATE '1970-01-01' + EventDate::INTEGER) AS EventDate)
+                       FROM read_parquet('{parquet}')""")
+        ctx = [("hits", parquet, "clickbench")]
+        pl_rewrite = lambda s: s
     else:
         text = (BASE / "queries/tpch/queries.sql").read_text()
         parts = re.split(r'--\s*Q(\d+)', text)
@@ -88,6 +110,7 @@ def setup(suite, sf, pgdb=None):
         pg = dict(host="127.0.0.1", dbname=pgdb or ("bench" if sf == 1 else f"bench_sf{sf}"),
                   user="bench", password=PG_PASS)
         dk = duckdb.connect(str(data_dir / f"tpch_sf{sf}.duckdb"), read_only=True)
+        dk.execute("SET threads=16; SET memory_limit='40GB';")
         ctx = [(t, str(data_dir / f"{t}.parquet")) for t in TPCH_TABLES]
         pl_rewrite = polars_sql
     return queries, pg, dk, ctx, pl_rewrite
@@ -111,9 +134,22 @@ class PolarsError(Exception):
 
 def _pl_worker(sql, tables, q):
     try:
+        import resource
+        lim = PL_MEM_GB * 1024**3
+        resource.setrlimit(resource.RLIMIT_AS, (lim, lim))
+    except Exception:
+        pass
+    try:
         ctx = pl.SQLContext()
-        for name, path in tables:
-            ctx.register(name, pl.scan_parquet(path))
+        for name, path, *opt in tables:
+            lf = pl.scan_parquet(path)
+            if opt and opt[0] == "clickbench":
+                # Mesma normalização de tipos usada em run_clickbench.py
+                lf = lf.with_columns([
+                    pl.from_epoch(pl.col("EventTime"), time_unit="s").alias("EventTime"),
+                    pl.col("EventDate").cast(pl.Int32).cast(pl.Date).alias("EventDate"),
+                ])
+            ctx.register(name, lf)
         q.put(("ok", [tuple(r) for r in ctx.execute(sql).collect().rows()]))
     except BaseException as e:              # inclui PanicException do Polars
         q.put(("err", f"{type(e).__name__}: {str(e).strip()}"))
@@ -156,6 +192,8 @@ def norm(v):
         f = float(v)
         return None if math.isnan(f) else f
     if isinstance(v, datetime.datetime):
+        if v.tzinfo is not None and v.time() != datetime.time(0):
+            v = v.astimezone(datetime.timezone.utc).replace(tzinfo=None)   # timestamptz → UTC
         if v.time() == datetime.time(0):
             return v.date().isoformat()          # DATE_TRUNC → meia-noite = data (com ou sem fuso)
         return v.replace(tzinfo=None).isoformat()
@@ -246,8 +284,12 @@ def read_answer(path):
 # ── Programa principal ───────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("suite", choices=["real", "tpch", "tpcds"])
-    ap.add_argument("--sf", type=int, default=1, choices=[1, 10])
+    ap.add_argument("suite", choices=["real", "tpch", "tpcds", "clickbench"])
+    ap.add_argument("--sf", type=int, default=1, choices=[1, 10, 100])
+    ap.add_argument("--queries", help="arquivo .sql alternativo (blocos '-- Qn'), p. ex. "
+                    "queries/clickbench/verification_deterministic.sql")
+    ap.add_argument("--ref", choices=["postgresql", "duckdb"], default="postgresql",
+                    help="referência da comparação; 'duckdb' dispensa o PostgreSQL")
     ap.add_argument("--pgdb", help="nome do banco PostgreSQL (se diferente do padrão)")
     ap.add_argument("--answers", help="pasta answers/ do dbgen (TPC-H SF=1): usa as respostas oficiais como referência")
     args = ap.parse_args()
@@ -260,7 +302,17 @@ def main():
         sys.exit(f"q1.out não encontrado em {answers}")
     base_abs = 0.01 if answers else 1e-9
     queries, pg, dk, ctx, pl_rewrite = setup(args.suite, args.sf, args.pgdb)
-    tag = args.suite if args.suite == "real" else f"{args.suite}_sf{args.sf}"
+    if args.queries:
+        qf = pathlib.Path(args.queries).expanduser()
+        if not qf.is_absolute():
+            qf = BASE / qf
+        parts = re.split(r'--\s*Q(\d+)', qf.read_text())
+        queries = {int(parts[i]): parts[i + 1].strip() for i in range(1, len(parts), 2)}
+    tag = args.suite if args.suite in ("real", "clickbench") else f"{args.suite}_sf{args.sf}"
+    if args.ref == "duckdb" and not answers:
+        tag += "_refduckdb"
+    if args.queries:
+        tag += "_" + pathlib.Path(args.queries).stem
     ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     out_csv = RES_DIR / f"equiv_{tag}_{ts}.csv"
     out_txt = RES_DIR / f"equiv_{tag}_{ts}.txt"
@@ -273,13 +325,19 @@ def main():
         for q in sorted(queries):
             sql = queries[q]
             res = {}
+            runners = {"postgresql": lambda s: run_pg(s, pg),
+                       "duckdb": lambda s: run_dk(s, dk),
+                       "polars": lambda s: run_pl(pl_rewrite(s), ctx)}
             if answers:
-                ref_name, ref_fn = "oficial", lambda s, q=q: read_answer(answers / f"q{q}.out")
+                ref_name = "oficial"
+                runners = {"oficial": lambda s, q=q: read_answer(answers / f"q{q}.out"),
+                           "duckdb": runners["duckdb"], "polars": runners["polars"]}
+            elif args.ref == "duckdb":
+                ref_name = "duckdb"
+                runners = {"duckdb": runners["duckdb"], "polars": runners["polars"]}
             else:
-                ref_name, ref_fn = "postgresql", lambda s: run_pg(s, pg)
-            for eng, fn in ((ref_name, ref_fn),
-                            ("duckdb", lambda s: run_dk(s, dk)),
-                            ("polars", lambda s: run_pl(pl_rewrite(s), ctx))):
+                ref_name = "postgresql"
+            for eng, fn in runners.items():
                 try:
                     res[eng] = ("ok", fn(sql))
                 except Exception as e:
@@ -289,7 +347,7 @@ def main():
 
             line = [f"Q{q:02d}"]
             ref_ok = res[ref_name][0] == "ok"
-            for eng in (ref_name, "duckdb", "polars"):
+            for eng in runners:
                 kind, val = res[eng]
                 if kind == "err":
                     status, rows, detail = "ERRO", "", val
@@ -297,7 +355,7 @@ def main():
                     status, rows, detail = "REFERENCIA", len(val), ""
                 elif not ref_ok:
                     # sem referência do PG, compara com o DuckDB
-                    ref = res["duckdb"] if eng == "polars" else None
+                    ref = res.get("duckdb") if eng == "polars" else None
                     if ref and ref[0] == "ok":
                         status, detail = compare(ref[1], val)
                         status += "_vs_DUCKDB"

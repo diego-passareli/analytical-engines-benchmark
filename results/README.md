@@ -45,3 +45,6 @@ os resultados com uma referência (PostgreSQL ou, no TPC-H, as respostas oficiai
 | `equiv_tpch_sf1_*.csv/.txt` | respostas oficiais do TPC-H (`dbgen/answers`) |
 | `equiv_tpcds_sf1_*.csv/.txt` | PostgreSQL (após a recarga) |
 | `equiv_tpcds_sf10_*.csv/.txt` | PostgreSQL |
+| `equiv_tpch_sf10_refduckdb_*`, `equiv_tpch_sf100_refduckdb_*` | DuckDB (bancos do PostgreSQL removidos) |
+| `equiv_clickbench_refduckdb_2*` | DuckDB (banco do PostgreSQL removido) |
+| `equiv_clickbench_refduckdb_verification_deterministic_*` | DuckDB, com as 8 consultas sem resposta única em versão determinística (`queries/clickbench/verification_deterministic.sql`) |

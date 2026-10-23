@@ -1,0 +1,45 @@
+suite,query,engine,status,rows,detail
+tpch_sf10_refduckdb,1,duckdb,REFERENCIA,4,
+tpch_sf10_refduckdb,1,polars,IGUAL,4,
+tpch_sf10_refduckdb,2,duckdb,REFERENCIA,100,
+tpch_sf10_refduckdb,2,polars,ERRO,,"ColumnNotFoundError: unable to find column ""p_partkey""; valid columns: [""ps_partkey"", ""ps_suppkey"", ""ps_availqty"", ""ps_supplycost"", ""ps_comment"", ""s_suppkey"", ""s_name"", ""s_address"", ""s_nationkey"", ""s_phone"", ""s_acctbal"", ""s_comment"", ""n_nationkey"", ""n_name"", ""n_regionkey"", ""n_comment"", ""r_regionkey"", ""r_name"", ""r_comment""]  Did you mean ""ps_partkey""?  Resolved plan until failure:  	---> FAILED HERE RESOLVING THIS_NODE <--- INNER JOIN: LEFT PLAN ON: [col(""n_regionkey"")]   INNER JOIN:   LEFT PLAN "
+tpch_sf10_refduckdb,3,duckdb,REFERENCIA,10,
+tpch_sf10_refduckdb,3,polars,IGUAL,10,
+tpch_sf10_refduckdb,4,duckdb,REFERENCIA,5,
+tpch_sf10_refduckdb,4,polars,IGUAL,5,
+tpch_sf10_refduckdb,5,duckdb,REFERENCIA,5,
+tpch_sf10_refduckdb,5,polars,IGUAL,5,
+tpch_sf10_refduckdb,6,duckdb,REFERENCIA,1,
+tpch_sf10_refduckdb,6,polars,DIFERENTE,1,"linha 0: ref=(1230113636.0101,) | motor=(752448393.07,)"
+tpch_sf10_refduckdb,7,duckdb,REFERENCIA,4,
+tpch_sf10_refduckdb,7,polars,IGUAL,4,
+tpch_sf10_refduckdb,8,duckdb,REFERENCIA,2,
+tpch_sf10_refduckdb,8,polars,ERRO,,Timeout: excedeu 300 s
+tpch_sf10_refduckdb,9,duckdb,REFERENCIA,175,
+tpch_sf10_refduckdb,9,polars,ERRO,,"ComputeError: cross joins would produce more rows than fits into 2^32; consider compiling with polars-big-idx feature, or set 'streaming'"
+tpch_sf10_refduckdb,10,duckdb,REFERENCIA,20,
+tpch_sf10_refduckdb,10,polars,IGUAL,20,
+tpch_sf10_refduckdb,11,duckdb,REFERENCIA,0,
+tpch_sf10_refduckdb,11,polars,IGUAL,0,
+tpch_sf10_refduckdb,12,duckdb,REFERENCIA,2,
+tpch_sf10_refduckdb,12,polars,IGUAL,2,
+tpch_sf10_refduckdb,13,duckdb,REFERENCIA,46,
+tpch_sf10_refduckdb,13,polars,ERRO,,"SQLInterfaceError: unsupported join constraint expression: Like { negated: true, any: false, expr: Identifier(Ident { value: ""o_comment"", quote_style: None, span: Span(Location(5,34)..Location(5,43)) }), pattern: Value(ValueWithSpan { value: SingleQuotedString(""%special%requests%""), span: Span(Location(5,53)..Location(5,73)) }), escape_char: None }"
+tpch_sf10_refduckdb,14,duckdb,REFERENCIA,1,
+tpch_sf10_refduckdb,14,polars,IGUAL,1,
+tpch_sf10_refduckdb,15,duckdb,REFERENCIA,1,
+tpch_sf10_refduckdb,15,polars,IGUAL,1,
+tpch_sf10_refduckdb,16,duckdb,REFERENCIA,27840,
+tpch_sf10_refduckdb,16,polars,IGUAL,27840,
+tpch_sf10_refduckdb,17,duckdb,REFERENCIA,1,
+tpch_sf10_refduckdb,17,polars,ERRO,,"ColumnNotFoundError: unable to find column ""p_partkey""; valid columns: [""l_orderkey"", ""l_partkey"", ""l_suppkey"", ""l_linenumber"", ""l_quantity"", ""l_extendedprice"", ""l_discount"", ""l_tax"", ""l_returnflag"", ""l_linestatus"", ""l_shipdate"", ""l_commitdate"", ""l_receiptdate"", ""l_shipinstruct"", ""l_shipmode"", ""l_comment""]  Did you mean ""l_partkey""?  Resolved plan until failure:  	---> FAILED HERE RESOLVING THIS_NODE <--- Parquet SCAN [/home/uniassis/bench/data/tpch/sf10/lineitem.parquet] PROJECT */16 COLUMNS ES"
+tpch_sf10_refduckdb,18,duckdb,REFERENCIA,100,
+tpch_sf10_refduckdb,18,polars,ERRO,,processo encerrado (código -6; possível falta de memória)
+tpch_sf10_refduckdb,19,duckdb,REFERENCIA,1,
+tpch_sf10_refduckdb,19,polars,IGUAL,1,
+tpch_sf10_refduckdb,20,duckdb,REFERENCIA,1804,
+tpch_sf10_refduckdb,20,polars,IGUAL,1804,
+tpch_sf10_refduckdb,21,duckdb,REFERENCIA,100,
+tpch_sf10_refduckdb,21,polars,ERRO,,OSError: Cannot allocate memory (os error 12)
+tpch_sf10_refduckdb,22,duckdb,REFERENCIA,7,
+tpch_sf10_refduckdb,22,polars,IGUAL,7,

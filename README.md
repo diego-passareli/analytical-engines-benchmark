@@ -47,7 +47,7 @@ Este repositório contém todos os scripts de setup, execução e análise utili
 │   ├── tpcds/                  ← 99 queries TPC-DS geradas pelo dsqgen
 │   ├── tpcds/adapted/          ← as mesmas 99 após adapt_tpcds_queries.py (usadas pelo runner)
 │   ├── export_fato_custo.sql   ← extração anonimizada da tabela real (executada no DW)
-│   ├── clickbench/queries.sql  ← 43 queries ClickBench
+│   ├── clickbench/queries.sql  ← 43 queries ClickBench (+ verification_deterministic.sql, só para verificação)
 │   └── real/                   ← q01.sql … q10.sql (dados reais; o runner as lê de
 │                                  ~/bench/scripts/queries/real)
 │
@@ -142,6 +142,12 @@ com `COPY FROM STDIN`, recria os índices e confere as contagens das 24 tabelas.
 python scripts/check_results.py real
 python scripts/check_results.py tpch --sf 1 --answers ~/tpch-dbgen/answers
 python scripts/check_results.py tpcds --sf 1
+python scripts/check_results.py tpcds --sf 10
+# Sem o PostgreSQL, usando o DuckDB como referência:
+python scripts/check_results.py tpch --sf 10 --ref duckdb
+python scripts/check_results.py tpch --sf 100 --ref duckdb
+python scripts/check_results.py clickbench --ref duckdb
+python scripts/check_results.py clickbench --ref duckdb --queries queries/clickbench/verification_deterministic.sql
 ```
 
 ### ClickBench
