@@ -40,7 +40,8 @@ Este repositório contém todos os scripts de setup, execução e análise utili
 │   ├── hits_pg.ddl             ← DDL da tabela hits (ClickBench) no PostgreSQL
 │   ├── tpcds_sf1_load_fixes/   ← correções de carga do TPC-DS SF=1, incl. reload_pg_sf1.py (ver abaixo)
 │   ├── analyze_results.py      ← lê os CSVs de resultado e gera tabelas/estatísticas
-│   └── check_results.py        ← verifica se os motores retornam os mesmos resultados
+│   ├── check_results.py        ← verifica se os motores retornam os mesmos resultados
+│   └── make_figures.py         ← gera as figuras de dados do artigo a partir de results/
 │
 ├── queries/
 │   ├── tpch/queries.sql        ← 22 queries TPC-H
@@ -135,6 +136,13 @@ tratamento do `|` final.
 não lê arquivos em `/tmp` do usuário) e deixou 13 tabelas vazias. Depois de rodar os
 scripts acima, execute `reload_pg_sf1.py`, que recarrega essas tabelas a partir do DuckDB
 com `COPY FROM STDIN`, recria os índices e confere as contagens das 24 tabelas.
+
+### Figuras do artigo
+
+```bash
+pip install matplotlib==3.10.9
+python scripts/make_figures.py      # grava figures/*.pdf e figures/figlog.txt
+```
 
 ### Verificação de resultados
 
