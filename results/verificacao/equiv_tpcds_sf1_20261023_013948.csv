@@ -1,0 +1,298 @@
+suite,query,engine,status,rows,detail
+tpcds_sf1,1,postgresql,REFERENCIA,100,
+tpcds_sf1,1,duckdb,IGUAL,100,
+tpcds_sf1,1,polars,ERRO,,"ColumnNotFoundError: unable to find column ""SR_FEE""; valid columns: [""sr_returned_date_sk"", ""sr_return_time_sk"", ""sr_item_sk"", ""sr_customer_sk"", ""sr_cdemo_sk"", ""sr_hdemo_sk"", ""sr_addr_sk"", ""sr_store_sk"", ""sr_reason_sk"", ""sr_ticket_number"", ""sr_return_quantity"", ""sr_return_amt"", ""sr_return_tax"", ""sr_return_amt_inc_tax"", ""sr_fee"", ""sr_return_ship_cost"", ""sr_refunded_cash"", ""sr_reversed_charge"", ""sr_store_credit"", ""sr_net_loss"", ""d_date_sk"", ""d_date_id"", ""d_date"", ""d_month_seq"", ""d_week_seq"", ""d_qu"
+tpcds_sf1,2,postgresql,ERRO,,"SyntaxError: subquery in FROM must have an alias LINE 4:   from (select ws_sold_date_sk sold_date_sk                ^ HINT:  For example, FROM (SELECT ...) [AS] foo."
+tpcds_sf1,2,duckdb,SEM_REFERENCIA,2513,
+tpcds_sf1,2,polars,IGUAL_vs_DUCKDB,2513,
+tpcds_sf1,3,postgresql,REFERENCIA,38,
+tpcds_sf1,3,duckdb,IGUAL,38,
+tpcds_sf1,3,polars,IGUAL,38,
+tpcds_sf1,4,postgresql,ERRO,,QueryCanceled: canceling statement due to statement timeout
+tpcds_sf1,4,duckdb,SEM_REFERENCIA,8,
+tpcds_sf1,4,polars,ERRO,,SQLInterfaceError: no table or struct column named 't_c_secyear' found
+tpcds_sf1,5,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 28: ...                 and (cast('1998-08-04' as date) +  14 days)                                                                    ^"
+tpcds_sf1,5,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 28:                   and (cast('1998-08-04' as date) +  14 days)                                                                  ^"
+tpcds_sf1,5,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 28, Column: 57"
+tpcds_sf1,6,postgresql,REFERENCIA,41,
+tpcds_sf1,6,duckdb,IGUAL,41,
+tpcds_sf1,6,polars,IGUAL,41,
+tpcds_sf1,7,postgresql,REFERENCIA,100,
+tpcds_sf1,7,duckdb,IGUAL,100,
+tpcds_sf1,7,polars,IGUAL,100,
+tpcds_sf1,8,postgresql,REFERENCIA,0,
+tpcds_sf1,8,duckdb,IGUAL,0,
+tpcds_sf1,8,polars,IGUAL,0,
+tpcds_sf1,9,postgresql,REFERENCIA,1,
+tpcds_sf1,9,duckdb,IGUAL,1,
+tpcds_sf1,9,polars,IGUAL,1,
+tpcds_sf1,10,postgresql,REFERENCIA,2,
+tpcds_sf1,10,duckdb,IGUAL,2,
+tpcds_sf1,10,polars,ERRO,,"SQLInterfaceError: EXISTS subquery is not currently supported in this position: Query { with: None, body: Select(Select { select_token: TokenWithSpan { token: Word(Word { value: ""select"", quote_style: None, keyword: SELECT }), span: Span(Location(22,11)..Location(22,17)) }, optimizer_hints: [], distinct: None, select_modifiers: None, top: None, top_before_distinct: false, projection: [Wildcard(WildcardAdditionalOptions { wildcard_token: TokenWithSpan { token: Mul, span: Span(Location(22,18)..Loc"
+tpcds_sf1,11,postgresql,ERRO,,QueryCanceled: canceling statement due to statement timeout
+tpcds_sf1,11,duckdb,SEM_REFERENCIA,88,
+tpcds_sf1,11,polars,ERRO,,SQLInterfaceError: no table or struct column named 't_w_secyear' found
+tpcds_sf1,12,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 18:     and (cast('2001-01-12' as date) + 30 days)                                                   ^"
+tpcds_sf1,12,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 18: 				and (cast('2001-01-12' as date) + 30 days)                                               ^"
+tpcds_sf1,12,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 18, Column: 42"
+tpcds_sf1,13,postgresql,REFERENCIA,1,
+tpcds_sf1,13,duckdb,IGUAL,1,
+tpcds_sf1,13,polars,IGUAL,1,
+tpcds_sf1,14,postgresql,ERRO,,"SyntaxError: subquery in FROM must have an alias LINE 4:  (select iss.i_brand_id brand_id          ^ HINT:  For example, FROM (SELECT ...) [AS] foo."
+tpcds_sf1,14,duckdb,SEM_REFERENCIA,100,
+tpcds_sf1,14,polars,ERRO,,SQLInterfaceError: one (and only one) statement can be parsed at a time
+tpcds_sf1,15,postgresql,REFERENCIA,100,
+tpcds_sf1,15,duckdb,IGUAL,100,
+tpcds_sf1,15,polars,IGUAL,100,
+tpcds_sf1,16,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 12:            (cast('1999-2-01' as date) + 60 days)                                                     ^"
+tpcds_sf1,16,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 12:            (cast('1999-2-01' as date) + 60 days)                                                     ^"
+tpcds_sf1,16,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 12, Column: 44"
+tpcds_sf1,17,postgresql,REFERENCIA,1,
+tpcds_sf1,17,duckdb,IGUAL,1,
+tpcds_sf1,17,polars,IGUAL,1,
+tpcds_sf1,18,postgresql,REFERENCIA,100,
+tpcds_sf1,18,duckdb,IGUAL,100,
+tpcds_sf1,18,polars,ERRO,,"SQLInterfaceError: expression Rollup([[Identifier(Ident { value: ""i_item_id"", quote_style: None, span: Span(Location(26,19)..Location(26,28)) })], [Identifier(Ident { value: ""ca_country"", quote_style: None, span: Span(Location(26,30)..Location(26,40)) })], [Identifier(Ident { value: ""ca_state"", quote_style: None, span: Span(Location(26,42)..Location(26,50)) })], [Identifier(Ident { value: ""ca_county"", quote_style: None, span: Span(Location(26,52)..Location(26,61)) })]]) is not currently supporte"
+tpcds_sf1,19,postgresql,REFERENCIA,100,
+tpcds_sf1,19,duckdb,IGUAL,100,
+tpcds_sf1,19,polars,IGUAL,100,
+tpcds_sf1,20,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 16:      and (cast('2001-01-12' as date) + 30 days)                                                    ^"
+tpcds_sf1,20,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 16:  				and (cast('2001-01-12' as date) + 30 days)                                                ^"
+tpcds_sf1,20,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 16, Column: 43"
+tpcds_sf1,21,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 18: ...  and d_date between (cast ('1998-04-08' as date) - 30 days)                                                                    ^"
+tpcds_sf1,21,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 18:      and d_date between (cast ('1998-04-08' as date) - 30 days)                                                                    ^"
+tpcds_sf1,21,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: , at Line: 3, Column: 13"
+tpcds_sf1,22,postgresql,REFERENCIA,100,
+tpcds_sf1,22,duckdb,IGUAL,100,
+tpcds_sf1,22,polars,ERRO,,"SQLInterfaceError: expression Rollup([[Identifier(Ident { value: ""i_product_name"", quote_style: None, span: Span(Location(12,24)..Location(12,38)) })], [Identifier(Ident { value: ""i_brand"", quote_style: None, span: Span(Location(13,25)..Location(13,32)) })], [Identifier(Ident { value: ""i_class"", quote_style: None, span: Span(Location(14,25)..Location(14,32)) })], [Identifier(Ident { value: ""i_category"", quote_style: None, span: Span(Location(15,25)..Location(15,35)) })]]) is not currently suppor"
+tpcds_sf1,23,postgresql,ERRO,,"SyntaxError: subquery in FROM must have an alias LINE 13:   from (select c_customer_sk,sum(ss_quantity*ss_sales_price)...                 ^ HINT:  For example, FROM (SELECT ...) [AS] foo."
+tpcds_sf1,23,duckdb,SEM_REFERENCIA,0,
+tpcds_sf1,23,polars,ERRO,,SQLInterfaceError: one (and only one) statement can be parsed at a time
+tpcds_sf1,24,postgresql,REFERENCIA,0,
+tpcds_sf1,24,duckdb,IGUAL,0,
+tpcds_sf1,24,polars,ERRO,,SQLInterfaceError: one (and only one) statement can be parsed at a time
+tpcds_sf1,25,postgresql,REFERENCIA,0,
+tpcds_sf1,25,duckdb,IGUAL,0,
+tpcds_sf1,25,polars,IGUAL,0,
+tpcds_sf1,26,postgresql,REFERENCIA,100,
+tpcds_sf1,26,duckdb,IGUAL,100,
+tpcds_sf1,26,polars,IGUAL,100,
+tpcds_sf1,27,postgresql,REFERENCIA,100,
+tpcds_sf1,27,duckdb,IGUAL,100,
+tpcds_sf1,27,polars,ERRO,,SQLInterfaceError: unsupported function 'grouping'
+tpcds_sf1,28,postgresql,REFERENCIA,1,
+tpcds_sf1,28,duckdb,IGUAL,1,
+tpcds_sf1,28,polars,IGUAL,1,
+tpcds_sf1,29,postgresql,REFERENCIA,0,
+tpcds_sf1,29,duckdb,IGUAL,0,
+tpcds_sf1,29,polars,IGUAL,0,
+tpcds_sf1,30,postgresql,REFERENCIA,92,
+tpcds_sf1,30,duckdb,IGUAL,92,
+tpcds_sf1,30,polars,IGUAL,92,
+tpcds_sf1,31,postgresql,REFERENCIA,51,
+tpcds_sf1,31,duckdb,IGUAL_ORDEM,51,mesmas linhas em outra ordem
+tpcds_sf1,31,polars,ERRO,,SQLInterfaceError: no table or struct column named 'ws2' found
+tpcds_sf1,32,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 10:         (cast('1998-03-18' as date) + 90 days)                                                   ^"
+tpcds_sf1,32,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 10:         (cast('1998-03-18' as date) + 90 days)                                                   ^"
+tpcds_sf1,32,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 10, Column: 42"
+tpcds_sf1,33,postgresql,REFERENCIA,100,
+tpcds_sf1,33,duckdb,IGUAL,100,
+tpcds_sf1,33,polars,IGUAL,100,
+tpcds_sf1,34,postgresql,REFERENCIA,347,
+tpcds_sf1,34,duckdb,DIFERENTE,451,linhas: ref=347 motor=451
+tpcds_sf1,34,polars,DIFERENTE,451,linhas: ref=347 motor=451
+tpcds_sf1,35,postgresql,REFERENCIA,100,
+tpcds_sf1,35,duckdb,IGUAL,100,
+tpcds_sf1,35,polars,ERRO,,"SQLInterfaceError: EXISTS subquery is not currently supported in this position: Query { with: None, body: Select(Select { select_token: TokenWithSpan { token: Word(Word { value: ""select"", quote_style: None, keyword: SELECT }), span: Span(Location(25,11)..Location(25,17)) }, optimizer_hints: [], distinct: None, select_modifiers: None, top: None, top_before_distinct: false, projection: [Wildcard(WildcardAdditionalOptions { wildcard_token: TokenWithSpan { token: Mul, span: Span(Location(25,18)..Loc"
+tpcds_sf1,36,postgresql,ERRO,,"UndefinedColumn: column ""lochierarchy"" does not exist LINE 25:   ,case when lochierarchy = 0 then i_category end                       ^"
+tpcds_sf1,36,duckdb,SEM_REFERENCIA,100,
+tpcds_sf1,36,polars,ERRO,,SQLInterfaceError: unsupported function 'grouping'
+tpcds_sf1,37,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 8: ...-06-02' as date) and (cast('2001-06-02' as date) +  60 days)                                                                   ^"
+tpcds_sf1,37,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 8: ...('2001-06-02' as date) and (cast('2001-06-02' as date) +  60 days)                                                                         ^"
+tpcds_sf1,37,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 8, Column: 86"
+tpcds_sf1,38,postgresql,REFERENCIA,1,
+tpcds_sf1,38,duckdb,IGUAL,1,
+tpcds_sf1,38,polars,IGUAL,1,
+tpcds_sf1,39,postgresql,REFERENCIA,7,
+tpcds_sf1,39,duckdb,IGUAL,7,
+tpcds_sf1,39,polars,ERRO,,SQLInterfaceError: one (and only one) statement can be parsed at a time
+tpcds_sf1,40,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 20:  and d_date between (cast ('1998-04-08' as date) - 30 days)                                                                ^"
+tpcds_sf1,40,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 20:  and d_date between (cast ('1998-04-08' as date) - 30 days)                                                                ^"
+tpcds_sf1,40,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 20, Column: 55"
+tpcds_sf1,41,postgresql,REFERENCIA,0,
+tpcds_sf1,41,duckdb,IGUAL,0,
+tpcds_sf1,41,polars,ERRO,,SQLInterfaceError: no table or struct column named 'i1' found
+tpcds_sf1,42,postgresql,REFERENCIA,10,
+tpcds_sf1,42,duckdb,IGUAL,10,
+tpcds_sf1,42,polars,ERRO,,"ShapeError: sort expressions must have same length as DataFrame, got DataFrame height: 10 and Series length: 1"
+tpcds_sf1,43,postgresql,REFERENCIA,6,
+tpcds_sf1,43,duckdb,IGUAL,6,
+tpcds_sf1,43,polars,IGUAL,6,
+tpcds_sf1,44,postgresql,REFERENCIA,10,
+tpcds_sf1,44,duckdb,IGUAL,10,
+tpcds_sf1,44,polars,IGUAL,10,
+tpcds_sf1,45,postgresql,REFERENCIA,16,
+tpcds_sf1,45,duckdb,IGUAL,16,
+tpcds_sf1,45,polars,IGUAL,16,
+tpcds_sf1,46,postgresql,REFERENCIA,100,
+tpcds_sf1,46,duckdb,IGUAL,100,
+tpcds_sf1,46,polars,IGUAL,100,
+tpcds_sf1,47,postgresql,REFERENCIA,100,
+tpcds_sf1,47,duckdb,IGUAL,100,
+tpcds_sf1,47,polars,ERRO,,"SchemaError: could not evaluate '>' comparison between series 'avg_monthly_sales' of dtype: List(Float64) and series 'literal' of dtype: Int32  This error occurred in the following expression: 	[(col(""avg_monthly_sales"")) > (dyn int: 0)] while evaluating this larger expression: 	[([([([([([([(col(""avg_monthly_sales"")) > (dyn int: 0)]) & ([(col(""d_year"")) == (2000)])]) & ([(col(""i_brand"")) == (col(""i_brand""))])]) & ([(col(""i_category"")) == (col(""i_category""))])]) & ([(col(""s_company_name"")) == (c"
+tpcds_sf1,48,postgresql,REFERENCIA,1,
+tpcds_sf1,48,duckdb,IGUAL,1,
+tpcds_sf1,48,polars,IGUAL,1,
+tpcds_sf1,49,postgresql,ERRO,,"SyntaxError: subquery in FROM must have an alias LINE 2:  (select          ^ HINT:  For example, FROM (SELECT ...) [AS] foo."
+tpcds_sf1,49,duckdb,SEM_REFERENCIA,31,
+tpcds_sf1,49,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: BinaryOp { left: CompoundIdentifier([Ident { value: ""ws"", quote_style: None, span: Span(Location(23,9)..Location(23,11)) }, Ident { value: ""ws_order_number"", quote_style: None, span: Span(Location(23,12)..Location(23,27)) }]), op: Eq, right: CompoundIdentifier([Ident { value: ""wr"", quote_style: None, span: Span(Location(23,30)..Location(23,32)) }, Ident { value: ""wr_order_number"", quote_style: None, span: Span(Locatio"
+tpcds_sf1,50,postgresql,REFERENCIA,6,
+tpcds_sf1,50,duckdb,IGUAL,6,
+tpcds_sf1,50,polars,IGUAL,6,
+tpcds_sf1,51,postgresql,REFERENCIA,100,
+tpcds_sf1,51,duckdb,IGUAL,100,
+tpcds_sf1,51,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: BinaryOp { left: CompoundIdentifier([Ident { value: ""web"", quote_style: None, span: Span(Location(36,63)..Location(36,66)) }, Ident { value: ""item_sk"", quote_style: None, span: Span(Location(36,67)..Location(36,74)) }]), op: Eq, right: CompoundIdentifier([Ident { value: ""store"", quote_style: None, span: Span(Location(36,77)..Location(36,82)) }, Ident { value: ""item_sk"", quote_style: None, span: Span(Location(36,83)..L"
+tpcds_sf1,52,postgresql,REFERENCIA,100,
+tpcds_sf1,52,duckdb,IGUAL,100,
+tpcds_sf1,52,polars,IGUAL,100,
+tpcds_sf1,53,postgresql,REFERENCIA,14,
+tpcds_sf1,53,duckdb,IGUAL,14,
+tpcds_sf1,53,polars,ERRO,,"SchemaError: could not evaluate '>' comparison between series 'avg_quarterly_sales' of dtype: List(Float64) and series 'literal' of dtype: Int32  This error occurred in the following expression: 	[(col(""avg_quarterly_sales"")) > (dyn int: 0)] while evaluating this larger expression: 	[(.when([(col(""avg_quarterly_sales"")) > (dyn int: 0)]).then([([(col(""sum_sales"")) - (col(""avg_quarterly_sales""))].abs()) / (col(""avg_quarterly_sales""))]).otherwise(null.cast(List(Float64)))) > (dyn float: 0.1)]"
+tpcds_sf1,54,postgresql,REFERENCIA,0,
+tpcds_sf1,54,duckdb,IGUAL,0,
+tpcds_sf1,54,polars,IGUAL,0,
+tpcds_sf1,55,postgresql,REFERENCIA,69,
+tpcds_sf1,55,duckdb,IGUAL,69,
+tpcds_sf1,55,polars,IGUAL,69,
+tpcds_sf1,56,postgresql,REFERENCIA,78,
+tpcds_sf1,56,duckdb,IGUAL,78,
+tpcds_sf1,56,polars,IGUAL,78,
+tpcds_sf1,57,postgresql,REFERENCIA,100,
+tpcds_sf1,57,duckdb,IGUAL,100,
+tpcds_sf1,57,polars,ERRO,,"SchemaError: could not evaluate '>' comparison between series 'avg_monthly_sales' of dtype: List(Float64) and series 'literal' of dtype: Int32  This error occurred in the following expression: 	[(col(""avg_monthly_sales"")) > (dyn int: 0)] while evaluating this larger expression: 	[([([([([([(col(""avg_monthly_sales"")) > (dyn int: 0)]) & ([(col(""cc_name"")) == (col(""cc_name""))])]) & ([(col(""d_year"")) == (2000)])]) & ([(col(""i_brand"")) == (col(""i_brand""))])]) & ([(col(""i_category"")) == (col(""i_catego"
+tpcds_sf1,58,postgresql,REFERENCIA,0,
+tpcds_sf1,58,duckdb,IGUAL,0,
+tpcds_sf1,58,polars,IGUAL,0,
+tpcds_sf1,59,postgresql,REFERENCIA,100,
+tpcds_sf1,59,duckdb,IGUAL,100,
+tpcds_sf1,59,polars,DIFERENTE,100,"linha 0: ref=('able', 'AAAAAAAACAAAAAAA', 5153.0, 0.7245042660650952, 1.288463676146656, 0.654770921501419, 0.9163771403937557, 1.0877356252202777, 1.4306933333751701, 1.0568322148060287) | motor=('able', 'AAAAAAAACAAAAAAA', 5153.0, 0.72, 1.29, 0.65, 0.92, 1.09, 1.43, 1.06) || linha 1: ref=('able', 'AAAAAAAACAAAAAAA', 5153.0, 0.7245042660650952, 1.288463676146656, 0.654770921501419, 0.9163771403937557, 1.0877356252202777, 1.4306933333751701, 1.0568322148060287) | motor=('able', 'AAAAAAAACAAAAAAA', 5153.0, 0.72, 1.29, 0.65, 0.92, 1.09, 1.43, 1.06) || linha 2: ref=('able', 'AAAAAAAACAAAAAAA', 5153.0, 0.7245042660650952, 1.288463676146656, 0.654770921501419, 0.9163771403937557, 1.0877356252202777, 1.4306933333751701, 1.0568322148060287) | motor=('able', 'AAAAAAAACAAAAAAA', 5153.0, 0.72, 1.29, 0.65, 0.92, 1.09, 1.43, 1.06)"
+tpcds_sf1,60,postgresql,REFERENCIA,100,
+tpcds_sf1,60,duckdb,IGUAL,100,
+tpcds_sf1,60,polars,IGUAL,100,
+tpcds_sf1,61,postgresql,REFERENCIA,1,
+tpcds_sf1,61,duckdb,IGUAL,1,
+tpcds_sf1,61,polars,IGUAL,1,
+tpcds_sf1,62,postgresql,REFERENCIA,100,
+tpcds_sf1,62,duckdb,IGUAL,100,
+tpcds_sf1,62,polars,IGUAL,100,
+tpcds_sf1,63,postgresql,REFERENCIA,44,
+tpcds_sf1,63,duckdb,IGUAL,44,
+tpcds_sf1,63,polars,ERRO,,"SchemaError: could not evaluate '>' comparison between series 'avg_monthly_sales' of dtype: List(Float64) and series 'literal' of dtype: Int32  This error occurred in the following expression: 	[(col(""avg_monthly_sales"")) > (dyn int: 0)] while evaluating this larger expression: 	[(.when([(col(""avg_monthly_sales"")) > (dyn int: 0)]).then([([(col(""sum_sales"")) - (col(""avg_monthly_sales""))].abs()) / (col(""avg_monthly_sales""))]).otherwise(null.cast(List(Float64)))) > (dyn float: 0.1)]"
+tpcds_sf1,64,postgresql,REFERENCIA,10,
+tpcds_sf1,64,duckdb,IGUAL,10,
+tpcds_sf1,64,polars,ERRO,,"DuplicateError: group_by keys contained duplicate output name 'ca_street_number'. It's possible that multiple expressions are returning the same default column name. If this is the case, try renaming the columns with `.alias(""new_name"")` to avoid duplicate column names."
+tpcds_sf1,65,postgresql,REFERENCIA,100,
+tpcds_sf1,65,duckdb,IGUAL,100,
+tpcds_sf1,65,polars,ERRO,,"SchemaError: 'join_where' cannot compare Decimal(38, 2) with Float64  Resolved plan until failure:  	---> FAILED HERE RESOLVING 'join' <--- CROSS JOIN: LEFT PLAN ON: []   CROSS JOIN:   LEFT PLAN ON: []     CROSS JOIN:     LEFT PLAN ON: []       Parquet SCAN [/home/uniassis/bench/data/tpcds/parquet_sf1/store.parquet]       PROJECT */29 COLUMNS       ESTIMATED ROWS: 12     RIGHT PLAN ON: []       Parquet SCAN [/home/uniassis/bench/data/tpcds/parquet_sf1/item.parquet]       PROJECT */22 COLUMNS    "
+tpcds_sf1,66,postgresql,REFERENCIA,5,
+tpcds_sf1,66,duckdb,IGUAL,5,
+tpcds_sf1,66,polars,APROX,5,"linha 0: ref=('Bad cards must make.', 621234.0, 'Fairview', 'Williamson County', 'TN', 'United States', 'DIAMOND,AIRBORNE', 2002.0, 28529558.05, 17812968.67, 18093306.39, 20041062.35, 20293187.72, 19609045.31, 28268256.76, 39118581.58, 41381604.44, 41851308.96, 78620578.79, 85440311.97, 45.924012610385134, 28.67352506462943, 29.124784525637683, 32.26008613501515, 32.66593219302227, 31.564668562892564, 45.50339607941613, 62.969157483331564, 66.6119440339711, 67.36802712021557, 126.55549887803951, 137.53321931832448, 51913305.4, 36746334.89, 34570038.09, 36465933.93, 41829584.56, 42449166.79, 51864560.52, 76418507.39, 83233208.22, 85239884.07, 145348603.97, 157783002.78) | motor=('Bad cards must make.', 621234.0, 'Fairview', 'Williamson County', 'TN', 'United States', 'DIAMOND,AIRBORNE', 2002.0, 28529558.05, 17812968.67, 18093306.39, 20041062.35, 20293187.72, 19609045.31, 28268256.76, 39118581.58, 41381604.44, 41851308.96, 78620578.79, 85440311.97, 45.93, 28.67, 29.12, 32.26, 32.66, 31.56, 45.51, 62.97, 66.61, 67.36, 126.55, 137.53, 51913305.4, 36746334.89, 34570038.09, 36465933.93, 41829584.56, 42449166.79, 51864560.52, 76418507.39, 83233208.22, 85239884.07, 145348603.97, 157783002.78) || linha 1: ref=('Conventional childr', 977787.0, 'Fairview', 'Williamson County', 'TN', 'United States', 'DIAMOND,AIRBORNE', 2002.0, 11753788.33, 18296990.29, 16100983.95, 21253226.77, 21794119.12, 14066730.63, 24243599.82, 46768054.71, 45779061.43, 50935342.08, 65830471.09, 82873716.25, 12.020806504893192, 18.712654484054298, 16.46676009192186, 21.736049640668163, 22.2892297811282, 14.386293364505766, 24.794356869134074, 47.83051391560738, 46.81905305552232, 52.092472164183, 67.32598315379525, 84.75641039408379, 35852345.39, 33078431.65, 35774637.59, 39857138.43, 42046877.6, 30331681.53, 42164759.74, 84415282.62, 89260694.16, 92651710.41, 137667538.19, 148960873.01) | motor=('Conventional childr', 977787.0, 'Fairview', 'Williamson County', 'TN', 'United States', 'DIAMOND,AIRBORNE', 2002.0, 11753788.33, 18296990.29, 16100983.95, 21253226.77, 21794119.12, 14066730.63, 24243599.82, 46768054.71, 45779061.43, 50935342.08, 65830471.09, 82873716.25, 12.03, 18.71, 16.47, 21.74, 22.29, 14.38, 24.79, 47.83, 46.82, 52.09, 67.32, 84.76, 35852345.39, 33078431.65, 35774637.59, 39857138.43, 42046877.6, 30331681.53, 42164759.74, 84415282.62, 89260694.16, 92651710.41, 137667538.19, 148960873.01) || linha 2: ref=('Doors canno', 294242.0, 'Fairview', 'Williamson County', 'TN', 'United States', 'DIAMOND,AIRBORNE', 2002.0, 20048051.14, 14384406.34, 22086843.5, 21137068.97, 25924716.7, 24448161.46, 17856710.23, 43626269.17, 40584358.79, 48164057.37, 76146593.02, 82010640.54, 68.13456658124944, 48.88631242310751, 75.06353103907668, 71.83566237994576, 88.10678523120424, 83.08861909584627, 60.687156252336514, 148.26662804766144, 137.92850371462944, 163.6885875231952, 258.7890002786822, 278.718335723656, 41526006.48, 30715371.48, 42463970.56, 40772430.39, 43016730.87, 45832326.02, 38460610.95, 85206336.32, 81378767.33, 86681952.47, 139457302.74, 149270041.88) | motor=('Doors canno', 294242.0, 'Fairview', 'Williamson County', 'TN', 'United States', 'DIAMOND,AIRBORNE', 2002.0, 20048051.14, 14384406.34, 22086843.5, 21137068.97, 25924716.7, 24448161.46, 17856710.23, 43626269.17, 40584358.79, 48164057.37, 76146593.02, 82010640.54, 68.14, 48.88, 75.06, 71.84, 88.11, 83.08, 60.69, 148.27, 137.93, 163.69, 258.79, 278.71, 41526006.48, 30715371.48, 42463970.56, 40772430.39, 43016730.87, 45832326.02, 38460610.95, 85206336.32, 81378767.33, 86681952.47, 139457302.74, 149270041.88)"
+tpcds_sf1,67,postgresql,REFERENCIA,100,
+tpcds_sf1,67,duckdb,IGUAL,100,
+tpcds_sf1,67,polars,ERRO,,"SQLInterfaceError: expression Rollup([[Identifier(Ident { value: ""i_category"", quote_style: None, span: Span(Location(29,25)..Location(29,35)) })], [Identifier(Ident { value: ""i_class"", quote_style: None, span: Span(Location(29,37)..Location(29,44)) })], [Identifier(Ident { value: ""i_brand"", quote_style: None, span: Span(Location(29,46)..Location(29,53)) })], [Identifier(Ident { value: ""i_product_name"", quote_style: None, span: Span(Location(29,55)..Location(29,69)) })], [Identifier(Ident { valu"
+tpcds_sf1,68,postgresql,REFERENCIA,100,
+tpcds_sf1,68,duckdb,IGUAL,100,
+tpcds_sf1,68,polars,IGUAL,100,
+tpcds_sf1,69,postgresql,REFERENCIA,100,
+tpcds_sf1,69,duckdb,IGUAL,100,
+tpcds_sf1,69,polars,ERRO,,"SQLInterfaceError: EXISTS subquery is not currently supported in this position: Query { with: None, body: Select(Select { select_token: TokenWithSpan { token: Word(Word { value: ""select"", quote_style: None, keyword: SELECT }), span: Span(Location(16,11)..Location(16,17)) }, optimizer_hints: [], distinct: None, select_modifiers: None, top: None, top_before_distinct: false, projection: [Wildcard(WildcardAdditionalOptions { wildcard_token: TokenWithSpan { token: Mul, span: Span(Location(16,18)..Loc"
+tpcds_sf1,70,postgresql,ERRO,,"UndefinedColumn: column ""lochierarchy"" does not exist LINE 33:   ,case when lochierarchy = 0 then s_state end                       ^"
+tpcds_sf1,70,duckdb,SEM_REFERENCIA,3,
+tpcds_sf1,70,polars,ERRO,,SQLInterfaceError: unsupported function 'grouping'
+tpcds_sf1,71,postgresql,REFERENCIA,1102,
+tpcds_sf1,71,duckdb,IGUAL_ORDEM,1102,mesmas linhas em outra ordem
+tpcds_sf1,71,polars,IGUAL_ORDEM,1102,mesmas linhas em outra ordem
+tpcds_sf1,72,postgresql,REFERENCIA,100,
+tpcds_sf1,72,duckdb,IGUAL_ORDEM,100,mesmas linhas em outra ordem
+tpcds_sf1,72,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: Identifier(Ident { value: ""cs_item_sk"", quote_style: None, span: Span(Location(8,20)..Location(8,30)) }), op: Eq, right: Identifier(Ident { value: ""inv_item_sk"", quote_style: None, span: Span(Location(8,33)..Location(8,44)) }) }))"
+tpcds_sf1,73,postgresql,REFERENCIA,5,
+tpcds_sf1,73,duckdb,DIFERENTE,9,linhas: ref=5 motor=9
+tpcds_sf1,73,polars,DIFERENTE,9,linhas: ref=5 motor=9
+tpcds_sf1,74,postgresql,REFERENCIA,90,
+tpcds_sf1,74,duckdb,IGUAL,90,
+tpcds_sf1,74,polars,ERRO,,SQLInterfaceError: no table or struct column named 't_w_secyear' found
+tpcds_sf1,75,postgresql,REFERENCIA,100,
+tpcds_sf1,75,duckdb,IGUAL,100,
+tpcds_sf1,75,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: BinaryOp { left: Identifier(Ident { value: ""cs_order_number"", quote_style: None, span: Span(Location(18,57)..Location(18,72)) }), op: Eq, right: Identifier(Ident { value: ""cr_order_number"", quote_style: None, span: Span(Location(18,73)..Location(18,88)) }) }, op: And, right: BinaryOp { left: Identifier(Ident { value: ""cs_item_sk"", quote_style: None, span: Span(Location(19,57)..Location(19,67)) }), op: Eq, right: Ident"
+tpcds_sf1,76,postgresql,REFERENCIA,100,
+tpcds_sf1,76,duckdb,IGUAL,100,
+tpcds_sf1,76,polars,IGUAL,100,
+tpcds_sf1,77,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 10: ...                and (cast('1998-08-04' as date) +  30 days)                                                                    ^"
+tpcds_sf1,77,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 10:                   and (cast('1998-08-04' as date) +  30 days)                                                                   ^"
+tpcds_sf1,77,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 10, Column: 57"
+tpcds_sf1,78,postgresql,REFERENCIA,100,
+tpcds_sf1,78,duckdb,DIFERENTE,100,"linha 0: ref=(2000.0, 1033.0, 58414.0, 0.0, 70.0, 75.01, 51.76, 99.0, 26.05, 22.1) | motor=(2000.0, 1033.0, 58414.0, 0.71, 70.0, 75.01, 51.76, 99.0, 26.05, 22.1) || linha 1: ref=(2000.0, 1057.0, 43743.0, 0.0, 40.0, None, None, 81.0, 43.3, 56.89) | motor=(2000.0, 1057.0, 43743.0, 0.49, 40.0, None, None, 81.0, 43.3, 56.89) || linha 2: ref=(2000.0, 1085.0, 43604.0, 0.0, 30.0, 2.73, 0.07, 77.0, 69.64, 34.92) | motor=(2000.0, 1085.0, 43604.0, 0.39, 30.0, 2.73, 0.07, 77.0, 69.64, 34.92)"
+tpcds_sf1,78,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: BinaryOp { left: BinaryOp { left: Identifier(Ident { value: ""ws_sold_year"", quote_style: None, span: Span(Location(45,18)..Location(45,30)) }), op: Eq, right: Identifier(Ident { value: ""ss_sold_year"", quote_style: None, span: Span(Location(45,31)..Location(45,43)) }) }, op: And, right: BinaryOp { left: Identifier(Ident { value: ""ws_item_sk"", quote_style: None, span: Span(Location(45,48)..Location(45,58)) }), op: Eq, r"
+tpcds_sf1,79,postgresql,REFERENCIA,100,
+tpcds_sf1,79,duckdb,IGUAL,100,
+tpcds_sf1,79,polars,IGUAL,100,
+tpcds_sf1,80,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 14: ...                 and (cast('1998-08-04' as date) +  30 days)                                                                    ^"
+tpcds_sf1,80,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 14:                   and (cast('1998-08-04' as date) +  30 days)                                                                  ^"
+tpcds_sf1,80,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 14, Column: 57"
+tpcds_sf1,81,postgresql,REFERENCIA,96,
+tpcds_sf1,81,duckdb,IGUAL,96,
+tpcds_sf1,81,polars,IGUAL,96,
+tpcds_sf1,82,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 8: ...-05-30' as date) and (cast('2002-05-30' as date) +  60 days)                                                                   ^"
+tpcds_sf1,82,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 8: ...('2002-05-30' as date) and (cast('2002-05-30' as date) +  60 days)                                                                         ^"
+tpcds_sf1,82,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 8, Column: 86"
+tpcds_sf1,83,postgresql,REFERENCIA,4,
+tpcds_sf1,83,duckdb,DIFERENTE,4,"linha 0: ref=('AAAAAAAAAHKAAAAA', 24.0, 0.0, 39.0, 0.0, 8.0, 0.0, 23.666666666666668) | motor=('AAAAAAAAAHKAAAAA', 24.0, 11.267605633802818, 39.0, 18.30985915492958, 8.0, 3.755868544600939, 23.666666666666668) || linha 1: ref=('AAAAAAAAIFNDAAAA', 4.0, 0.0, 10.0, 0.0, 60.0, 0.0, 24.666666666666668) | motor=('AAAAAAAAIFNDAAAA', 4.0, 1.8018018018018018, 10.0, 4.504504504504505, 60.0, 27.027027027027028, 24.666666666666668) || linha 2: ref=('AAAAAAAAKJADAAAA', 17.0, 0.0, 51.0, 0.0, 2.0, 0.0, 23.333333333333332) | motor=('AAAAAAAAKJADAAAA', 17.0, 8.095238095238095, 51.0, 24.285714285714285, 2.0, 0.9523809523809523, 23.333333333333332)"
+tpcds_sf1,83,polars,DIFERENTE,4,"linha 0: ref=('AAAAAAAAAHKAAAAA', 24.0, 0.0, 39.0, 0.0, 8.0, 0.0, 23.666666666666668) | motor=('AAAAAAAAAHKAAAAA', 24.0, 11.267605633802816, 39.0, 18.30985915492958, 8.0, 3.755868544600939, 23.666666666666664) || linha 1: ref=('AAAAAAAAIFNDAAAA', 4.0, 0.0, 10.0, 0.0, 60.0, 0.0, 24.666666666666668) | motor=('AAAAAAAAIFNDAAAA', 4.0, 1.8018018018018018, 10.0, 4.504504504504505, 60.0, 27.027027027027028, 24.666666666666664) || linha 2: ref=('AAAAAAAAKJADAAAA', 17.0, 0.0, 51.0, 0.0, 2.0, 0.0, 23.333333333333332) | motor=('AAAAAAAAKJADAAAA', 17.0, 8.095238095238095, 51.0, 24.28571428571428, 2.0, 0.9523809523809523, 23.333333333333332)"
+tpcds_sf1,84,postgresql,REFERENCIA,22,
+tpcds_sf1,84,duckdb,IGUAL,22,
+tpcds_sf1,84,polars,IGUAL,22,
+tpcds_sf1,85,postgresql,REFERENCIA,3,
+tpcds_sf1,85,duckdb,IGUAL,3,
+tpcds_sf1,85,polars,ERRO,,"ShapeError: sort expressions must have same length as DataFrame, got DataFrame height: 3 and Series length: 1"
+tpcds_sf1,86,postgresql,ERRO,,"UndefinedColumn: column ""lochierarchy"" does not exist LINE 21:    case when lochierarchy = 0 then i_category end,                       ^"
+tpcds_sf1,86,duckdb,SEM_REFERENCIA,100,
+tpcds_sf1,86,polars,ERRO,,SQLInterfaceError: unsupported function 'grouping'
+tpcds_sf1,87,postgresql,REFERENCIA,1,
+tpcds_sf1,87,duckdb,IGUAL,1,
+tpcds_sf1,87,polars,IGUAL,1,
+tpcds_sf1,88,postgresql,REFERENCIA,1,
+tpcds_sf1,88,duckdb,IGUAL,1,
+tpcds_sf1,88,polars,IGUAL,1,
+tpcds_sf1,89,postgresql,REFERENCIA,100,
+tpcds_sf1,89,duckdb,IGUAL,100,
+tpcds_sf1,89,polars,ERRO,,"SchemaError: could not evaluate comparison between series 'avg_monthly_sales' of dtype: List(Float64) and series 'literal' of dtype: Int32  This error occurred in the following expression: 	[(col(""avg_monthly_sales"")) != (dyn int: 0)] while evaluating this larger expression: 	[(.when([(col(""avg_monthly_sales"")) != (dyn int: 0)]).then([([(col(""sum_sales"")) - (col(""avg_monthly_sales""))].abs()) / (col(""avg_monthly_sales""))]).otherwise(null.cast(List(Float64)))) > (dyn float: 0.1)]"
+tpcds_sf1,90,postgresql,REFERENCIA,1,
+tpcds_sf1,90,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""at""  LINE 9:          and web_page.wp_char_count between 5000 and 5200) at,                                                                    ^"
+tpcds_sf1,90,polars,APROX,1,"linha 0: ref=(1.0396039603960396,) | motor=(1.0396,)"
+tpcds_sf1,91,postgresql,REFERENCIA,4,
+tpcds_sf1,91,duckdb,IGUAL,4,
+tpcds_sf1,91,polars,ERRO,,"ColumnNotFoundError: unable to find column ""cr_net_loss""; valid columns: [""Call_Center"", ""Call_Center_Name"", ""Manager"", ""Returns_Loss"", ""cc_call_center_id"", ""cc_name"", ""cc_manager"", ""cd_marital_status"", ""cd_education_status""]  Resolved plan until failure:  	---> FAILED HERE RESOLVING 'select' <--- SELECT [col(""cc_call_center_id"").alias(""Call_Center""), col(""cc_name"").alias(""Call_Center_Name""), col(""cc_manager"").alias(""Manager""), col(""Returns_Loss""), col(""cc_call_center_id""), col(""cc_name""), col("""
+tpcds_sf1,92,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 11:         (cast('1998-03-18' as date) + 90 days)                                                   ^"
+tpcds_sf1,92,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 11:         (cast('1998-03-18' as date) + 90 days)                                                   ^"
+tpcds_sf1,92,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 11, Column: 42"
+tpcds_sf1,93,postgresql,REFERENCIA,100,
+tpcds_sf1,93,duckdb,IGUAL,100,
+tpcds_sf1,93,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: BinaryOp { left: Identifier(Ident { value: ""sr_item_sk"", quote_style: None, span: Span(Location(8,64)..Location(8,74)) }), op: Eq, right: Identifier(Ident { value: ""ss_item_sk"", quote_style: None, span: Span(Location(8,77)..Location(8,87)) }) }, op: And, right: BinaryOp { left: Identifier(Ident { value: ""sr_ticket_number"", quote_style: None, span: Span(Location(9,68)..Location(9,84)) }), op: Eq, right: Identifier(Iden"
+tpcds_sf1,94,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 12:            (cast('1999-5-01' as date) + 60 days)                                                     ^"
+tpcds_sf1,94,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 12:            (cast('1999-5-01' as date) + 60 days)                                                     ^"
+tpcds_sf1,94,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 12, Column: 44"
+tpcds_sf1,95,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 17:            (cast('1999-5-01' as date) + 60 days)                                                     ^"
+tpcds_sf1,95,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 17:            (cast('1999-5-01' as date) + 60 days)                                                     ^"
+tpcds_sf1,95,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 17, Column: 44"
+tpcds_sf1,96,postgresql,REFERENCIA,1,
+tpcds_sf1,96,duckdb,IGUAL,1,
+tpcds_sf1,96,polars,IGUAL,1,
+tpcds_sf1,97,postgresql,REFERENCIA,1,
+tpcds_sf1,97,duckdb,IGUAL,1,
+tpcds_sf1,97,polars,ERRO,,"SQLInterfaceError: unsupported SQL join constraint: On(Nested(BinaryOp { left: BinaryOp { left: CompoundIdentifier([Ident { value: ""ssci"", quote_style: None, span: Span(Location(20,36)..Location(20,40)) }, Ident { value: ""customer_sk"", quote_style: None, span: Span(Location(20,41)..Location(20,52)) }]), op: Eq, right: CompoundIdentifier([Ident { value: ""csci"", quote_style: None, span: Span(Location(20,53)..Location(20,57)) }, Ident { value: ""customer_sk"", quote_style: None, span: Span(Location(2"
+tpcds_sf1,98,postgresql,ERRO,,"SyntaxError: syntax error at or near ""days"" LINE 18:     and (cast('2001-01-12' as date) + 30 days)                                                   ^"
+tpcds_sf1,98,duckdb,ERRO,,"ParserException: Parser Error: syntax error at or near ""days""  LINE 18: 				and (cast('2001-01-12' as date) + 30 days)                                               ^"
+tpcds_sf1,98,polars,ERRO,,"SQLInterfaceError: sql parser error: Expected: ), found: days at Line: 18, Column: 42"
+tpcds_sf1,99,postgresql,REFERENCIA,90,
+tpcds_sf1,99,duckdb,IGUAL_ORDEM,90,mesmas linhas em outra ordem
+tpcds_sf1,99,polars,IGUAL_ORDEM,90,mesmas linhas em outra ordem

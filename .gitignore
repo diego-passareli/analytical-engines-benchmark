@@ -16,4 +16,8 @@ emissions.csv
 .codecarbon.config
 
 # LaTeX
-*.aux *.log *.out *.toc *.synctex.gz
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

@@ -1,0 +1,60 @@
+python3 scripts/tpcds_sf1_load_fixes/reload_pg_sf1.py
+Tabelas vazias no PostgreSQL a recarregar (13): catalog_page, catalog_returns, customer, customer_address, inventory, item, promotion, store_returns, store_sales, time_dim, warehouse, web_page, web_returns
+
+  catalog_page                 11,718 linhas     0.0s
+  catalog_returns             144,067 linhas     0.5s
+  customer                    100,000 linhas     0.3s
+  customer_address             50,000 linhas     0.1s
+  inventory                11,745,000 linhas     3.9s
+  item                         18,000 linhas     0.1s
+  promotion                       300 linhas     0.0s
+  store_returns               287,514 linhas     0.7s
+  store_sales               2,880,404 linhas     6.9s
+  time_dim                     86,400 linhas     0.1s
+  warehouse                         5 linhas     0.0s
+  web_page                         60 linhas     0.0s
+  web_returns                  71,763 linhas     0.2s
+
+Índices:
+  store_sales(ss_sold_date_sk): criado
+  store_returns(sr_returned_date_sk): criado
+  catalog_sales(cs_sold_date_sk): já existe
+  catalog_returns(cr_returned_date_sk): criado
+  web_sales(ws_sold_date_sk): já existe
+  web_returns(wr_returned_date_sk): criado
+  inventory(inv_date_sk): criado
+  date_dim(d_date_sk): já existe
+  date_dim(d_year, d_moy): já existe
+  item(i_item_sk): criado
+  customer(c_customer_sk): criado
+  store(s_store_sk): já existe
+
+ANALYZE concluído.
+
+Conferência final (PostgreSQL vs DuckDB):
+  call_center              PG=         6  DK=         6  OK
+  catalog_page             PG=    11,718  DK=    11,718  OK
+  catalog_returns          PG=   144,067  DK=   144,067  OK
+  catalog_sales            PG= 1,441,548  DK= 1,441,548  OK
+  customer                 PG=   100,000  DK=   100,000  OK
+  customer_address         PG=    50,000  DK=    50,000  OK
+  customer_demographics    PG= 1,920,800  DK= 1,920,800  OK
+  date_dim                 PG=    73,049  DK=    73,049  OK
+  household_demographics   PG=     7,200  DK=     7,200  OK
+  income_band              PG=        20  DK=        20  OK
+  inventory                PG=11,745,000  DK=11,745,000  OK
+  item                     PG=    18,000  DK=    18,000  OK
+  promotion                PG=       300  DK=       300  OK
+  reason                   PG=        35  DK=        35  OK
+  ship_mode                PG=        20  DK=        20  OK
+  store                    PG=        12  DK=        12  OK
+  store_returns            PG=   287,514  DK=   287,514  OK
+  store_sales              PG= 2,880,404  DK= 2,880,404  OK
+  time_dim                 PG=    86,400  DK=    86,400  OK
+  warehouse                PG=         5  DK=         5  OK
+  web_page                 PG=        60  DK=        60  OK
+  web_returns              PG=    71,763  DK=    71,763  OK
+  web_sales                PG=   719,384  DK=   719,384  OK
+  web_site                 PG=        30  DK=        30  OK
+
+Todas as tabelas conferem. Pode rodar: python3 scripts/run_tpcds.py 1

@@ -1,0 +1,2 @@
+Q01 polars ERRO: SQLInterfaceError: unsupported function 'date_trunc'
+Q10 polars ERRO: SQLInterfaceError: unsupported function 'date_trunc'

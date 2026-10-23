@@ -31,14 +31,16 @@ Este repositório contém todos os scripts de setup, execução e análise utili
 │   ├── run_tpcds.py            ← runner TPC-DS (SF como argumento)
 │   ├── run_clickbench.py       ← runner ClickBench
 │   ├── run_real.py             ← runner dados reais (fato_custo)
+│   ├── setup_tpch.py           ← gera (dbgen) e carrega TPC-H em PG, DuckDB e Parquet
 │   ├── setup_tpcds.py          ← cria banco PG, DuckDB e Parquet para TPC-DS
 │   ├── setup_clickbench.py     ← cria banco PG, DuckDB e Parquet para ClickBench
 │   ├── setup_real.py           ← carrega fato_custo.csv em PG, DuckDB e Parquet
 │   ├── adapt_tpcds_queries.py  ← adapta queries TPC-DS (TOP N → LIMIT N, remove comentários)
 │   ├── create_queries.sh       ← cria as 10 queries de dados reais em scripts/queries/real
 │   ├── hits_pg.ddl             ← DDL da tabela hits (ClickBench) no PostgreSQL
-│   ├── tpcds_sf1_load_fixes/   ← correções de carga usadas no TPC-DS SF=1 (ver abaixo)
-│   └── analyze_results.py      ← lê os CSVs de resultado e gera tabelas/estatísticas
+│   ├── tpcds_sf1_load_fixes/   ← correções de carga do TPC-DS SF=1, incl. reload_pg_sf1.py (ver abaixo)
+│   ├── analyze_results.py      ← lê os CSVs de resultado e gera tabelas/estatísticas
+│   └── check_results.py        ← verifica se os motores retornam os mesmos resultados
 │
 ├── queries/
 │   ├── tpch/queries.sql        ← 22 queries TPC-H
@@ -59,10 +61,12 @@ Este repositório contém todos os scripts de setup, execução e análise utili
     ├── tpch_sf1_20260929_014656.csv
     ├── tpch_sf10_20260929_135434.csv
     ├── tpch_sf100_20260929_173811.csv
-    ├── tpcds_sf1_20260930_133613.csv
+    ├── tpcds_sf1_20261022_221128.csv
     ├── tpcds_sf10_20260930_152117.csv
     ├── clickbench_20260929_231522.csv
-    └── real_20261022_191400.csv
+    ├── real_20261022_191400.csv
+    ├── substituidos/           ← execuções descartadas (ver results/README.md)
+    └── verificacao/            ← saídas de check_results.py e da recarga do TPC-DS SF=1
 ```
 
 ## Requisitos
@@ -95,7 +99,10 @@ SQL
 ### TPC-H
 
 ```bash
-# Dados gerados com dbgen (TPC-H 2.14.0)
+# Setup: gera os dados com dbgen (TPC-H 2.14.0) e carrega PG, DuckDB e Parquet
+# (consolida os comandos usados na carga original; ver docstring do script)
+python scripts/setup_tpch.py --sf 1      # e --sf 10, --sf 100
+
 python scripts/run_tpch.py --sf 1
 python scripts/run_tpch.py --sf 10
 python scripts/run_tpch_sf100.py --sf 100   # mesmo runner, timeouts maiores
@@ -123,6 +130,19 @@ apresentaram divergência no número de colunas. Os scripts em
 foram usados para recarregar essas tabelas no PostgreSQL e no DuckDB e regenerar os
 arquivos Parquet do SF=1. A versão final de `setup_tpcds.py` já incorpora o
 tratamento do `|` final.
+
+**Atenção:** no PostgreSQL, a carga de `fix_load.py` falhou (o `COPY` do lado do servidor
+não lê arquivos em `/tmp` do usuário) e deixou 13 tabelas vazias. Depois de rodar os
+scripts acima, execute `reload_pg_sf1.py`, que recarrega essas tabelas a partir do DuckDB
+com `COPY FROM STDIN`, recria os índices e confere as contagens das 24 tabelas.
+
+### Verificação de resultados
+
+```bash
+python scripts/check_results.py real
+python scripts/check_results.py tpch --sf 1 --answers ~/tpch-dbgen/answers
+python scripts/check_results.py tpcds --sf 1
+```
 
 ### ClickBench
 
