@@ -52,7 +52,7 @@ plt.rcParams.update({'font.family':'serif','font.serif':['Liberation Serif','Dej
  'pdf.fonttype':42,'axes.linewidth':0.6,'lines.linewidth':1.1})
 C={'postgresql':'#c0504d','duckdb':'#1f4e79','polars':'#e0a030'}
 NAME={'postgresql':'PostgreSQL','duckdb':'DuckDB','polars':'Polars'}
-CFG=[('tpch1','TPC-H\nSF=1'),('tpch10','TPC-H\nSF=10'),('tpch100','TPC-H\nSF=100'),('ds1','TPC-DS\nSF=1'),('ds10','TPC-DS\nSF=10'),('cb','Click-\nBench'),('real','Real')]
+CFG=[('tpch1','TPC-H\nSF=1'),('tpch10','TPC-H\nSF=10'),('tpch100','TPC-H\nSF=100'),('ds1','TPC-DS\nSF=1'),('ds10','TPC-DS\nSF=10'),('cb','Click-\nBench'),('real','Real\n(on-prem.)')]
 fmtx=FuncFormatter(lambda v,_: f'{v:g}'+'×')
 log=[]
 # ---------- Fig 1: median speedup and total-time ratio per suite
